@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://sxk13.github.io/pmfun.github.io/</id>
     <title>PMGO</title>
-    <updated>2021-07-28T07:35:16.165Z</updated>
+    <updated>2021-08-05T10:36:57.913Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://sxk13.github.io/pmfun.github.io/"/>
     <link rel="self" href="https://sxk13.github.io/pmfun.github.io/atom.xml"/>
@@ -10,6 +10,163 @@
     <logo>https://sxk13.github.io/pmfun.github.io/images/avatar.png</logo>
     <icon>https://sxk13.github.io/pmfun.github.io/favicon.ico</icon>
     <rights>All rights reserved 2021, PMGO</rights>
+    <entry>
+        <title type="html"><![CDATA[【玩儿】Python爬取索尼E口和M4/3口镜头列表]]></title>
+        <id>https://sxk13.github.io/pmfun.github.io/post/wan-er-python-pa-qu-suo-ni-e-kou-he-m43-kou-jing-tou-lie-biao/</id>
+        <link href="https://sxk13.github.io/pmfun.github.io/post/wan-er-python-pa-qu-suo-ni-e-kou-he-m43-kou-jing-tou-lie-biao/">
+        </link>
+        <updated>2021-08-04T10:34:54.000Z</updated>
+        <summary type="html"><![CDATA[<p>由于精力和冲洗空间的限制，我爬出胶片坑已经一年多了。但是最近手痒难耐，不禁想跳回摄影坑，于是挑选器材提上了日程。<br>
+首先映入眼帘的是M4/3系统和索尼α7系列，分别以便携和全画幅的优势进入了待选列表。那么接下来就是镜头群的问题啦。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>由于精力和冲洗空间的限制，我爬出胶片坑已经一年多了。但是最近手痒难耐，不禁想跳回摄影坑，于是挑选器材提上了日程。<br>
+首先映入眼帘的是M4/3系统和索尼α7系列，分别以便携和全画幅的优势进入了待选列表。那么接下来就是镜头群的问题啦。</p>
+<!-- more -->
+<p>项目页面见此处--&gt;<a href="https://github.com/sxk13/E-and-M4-3-lens-list.git">Github页面</a></p>
+<h2 id="页面分析">页面分析</h2>
+<p>数据来源选择了太平洋电脑网，选择的原因有三：</p>
+<ol>
+<li>镜头列表中有足够的数据，无需进入详情页面获取；</li>
+<li>列表中包含报价信息，方便之后与闲鱼价格对比；</li>
+<li>懒得找其他网站了，60分万岁……</li>
+</ol>
+<figure data-type="image" tabindex="1"><img src="https://sxk13.github.io/pmfun.github.io//post-images/1628129344775.jpg" alt="太平洋" loading="lazy"></figure>
+<h2 id="代码概述">代码概述</h2>
+<h3 id="导入库及定义正则表达式">导入库及定义正则表达式</h3>
+<pre><code class="language-python">import urllib.request
+import urllib.error
+from bs4 import BeautifulSoup
+import re
+import xlwt
+import ssl
+
+# 定义正则语句
+findlensinfo = re.compile(r'&lt;div class=&quot;item-title&quot;&gt;.*&gt;(.*?)&lt;/a&gt;')
+findlensprice = re.compile(r'&lt;div class=&quot;price price-now&quot;&gt;.*&gt;(.*?)&lt;/a&gt;')
+# 从lensinfo中拆解详细的焦距、光圈等信息
+findcom = re.compile(r'.*?(?=[0-9])')
+findmm = re.compile(r'[0-9].*mm')
+findff = re.compile(r'mm(.*[0-9])')
+findother = re.compile(r'.*[0-9](.*)')
+
+</code></pre>
+<h3 id="使用了三个函数">使用了三个函数</h3>
+<h5 id="1-askurl请求单个页面的数据">1 askURL——请求单个页面的数据'</h5>
+<pre><code class="language-python"># 请求一个URL，将页面内容以字符串的形式返回
+def askURL(url):
+    head = {
+        &quot;User-Agent&quot;: &quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15&quot;
+    }
+    req = urllib.request.Request(url, headers=head)
+    html = &quot;&quot;
+    try:
+        response = urllib.request.urlopen(req)
+        html = response.read().decode(&quot;GBK&quot;)
+        print(&quot;获取成功&quot;)
+    except urllib.error.URLError as e:
+        if hasattr(e, &quot;code&quot;):
+            print(e.code)
+        if hasattr(e, &quot;reason&quot;):
+            print(e.reason)
+    return html
+</code></pre>
+<h5 id="2-getdata调用askurl并">2 getData——调用askURL并</h5>
+<pre><code class="language-python"># 根据基础URL，调用askURL函数，爬取所有相关的网页文件,并以列表返回解析后的数据
+def getData(baseurl):
+    datalist = []
+    for url in baseurl:
+        htmlData = askURL(url)  # 调用获取网页数据的函数
+
+        # 解析网页内容
+        soup = BeautifulSoup(htmlData, &quot;html.parser&quot;)
+        for item in soup.find_all('li', class_=&quot;item&quot;):
+            data = []  # 保存一个镜头的所有信息
+            item = str(item)
+
+            lensinfo = re.findall(findlensinfo, item)
+            if len(lensinfo) == 0:
+                continue
+
+            data.append(lensinfo[0])
+            try:
+                data.append(re.findall(findcom,lensinfo[0])[0])
+            except IndexError:
+                data.append(&quot;无法匹配到品牌&quot;)
+                print(lensinfo,&quot;无法匹配到品牌&quot;)
+
+            try:
+                data.append(re.findall(findmm,lensinfo[0])[0])
+            except IndexError:
+                data.append(&quot;无法匹配到焦距&quot;)
+                print(lensinfo,&quot;无法匹配到焦距&quot;)
+            try:
+                data.append(re.findall(findff,lensinfo[0])[0])
+            except IndexError:
+                data.append(&quot;无法匹配到光圈&quot;)
+                print(lensinfo,&quot;无法匹配到光圈&quot;)
+
+            try:
+                data.append(re.findall(findother,lensinfo[0])[0])
+            except IndexError:
+                data.append(&quot;无法匹配到其他型号信息&quot;)
+                print(lensinfo,&quot;无法匹配到其他型号信息&quot;)
+
+            lensprice = re.findall(findlensprice, item)
+            if len(lensprice) != 0:
+                data.append(lensprice[0].replace(&quot;¥&quot;, &quot;&quot;))
+            else:
+                data.append(&quot;&quot;)
+
+            datalist.append(data)
+
+    return datalist
+</code></pre>
+<h5 id="3-savedata将数据保存到excel表">3 saveData——将数据保存到excel表</h5>
+<pre><code class="language-python">def saveData(datalist, savepath):
+    book = xlwt.Workbook(encoding=&quot;utf-8&quot;)
+    sheet = book.add_sheet(&quot;sheet1&quot;)
+    col = (&quot;完整名称&quot;,&quot;制造商&quot;,&quot;焦距&quot;,&quot;光圈&quot;,&quot;其他型号信息&quot;,&quot;报价&quot;)
+    count=len(datalist)
+    for i in range(0, 6):
+        sheet.write(0, i, col[i])
+    for i in range(0, count):
+        print(&quot;第%d条&quot;%(i+1))
+        data=datalist[i]
+        for j in range(0,6):
+            sheet.write(i+1,j,data[j])
+    book.save(savepath)
+</code></pre>
+<h3 id="主要执行部分">主要执行部分</h3>
+<pre><code class="language-python">if __name__ == '__main__':
+    ssl._create_default_https_context = ssl._create_unverified_context
+
+    # 索尼E卡口
+    baseurl=[&quot;https://product.pconline.com.cn/lens/c11228_c15513/list.shtml&quot;,&quot;https://product.pconline.com.cn/lens/c11228_c15513/list_25s1.shtml&quot;,&quot;https://product.pconline.com.cn/lens/c11228_c15513/list_50s1.shtml&quot;,&quot;https://product.pconline.com.cn/lens/c11228_c15513/list_75s1.shtml&quot;]
+    savepath = &quot;./sonylens.xls&quot;
+
+    # M43画幅
+    # baseurl=[&quot;https://product.pconline.com.cn/lens/c11229/list.shtml&quot;,&quot;https://product.pconline.com.cn/lens/c11229/list_25s1.shtml&quot;]
+    # savepath = &quot;./M43lens.xls&quot;
+
+    datalist = getData(baseurl)
+    saveData(datalist, savepath)
+</code></pre>
+<h2 id="爬取结果">爬取结果</h2>
+<p>依次执行索尼E卡口和M43卡口的爬取，得到excel表格两个（下图均为整理后）</p>
+<ul>
+<li>索尼E卡口爬取结果<br>
+<img src="https://sxk13.github.io/pmfun.github.io//post-images/1628159372314.jpg" alt="" loading="lazy"></li>
+<li>M4/3卡口爬取结果<br>
+<img src="https://sxk13.github.io/pmfun.github.io//post-images/1628159403039.jpg" alt="" loading="lazy"></li>
+</ul>
+<h2 id="总结">总结</h2>
+<ol>
+<li>由于获取到的镜头信息是一整段的如<code>索尼 FE 200-600mm F5.6-6.3 G OSS</code>，需要通过正则进行二次拆分。而由于各厂家的镜头信息差异较大，会存在匹配失败的情况。正则表达式的编写还需要精进。</li>
+<li>M4/3镜头的焦距存在转换系数，如果能在存储之前处理，可以减少一些后期的工作。（后来另写了一小段代码，进行了转换）</li>
+<li>爬完之后才发现，WIKI上有完整的镜头信息表格，本来直接复制就行了……（摔！）</li>
+</ol>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[悠贝童书通-竞品调研]]></title>
         <id>https://sxk13.github.io/pmfun.github.io/post/you-bei-tong-shu-tong-jing-pin-diao-yan/</id>
@@ -86,9 +243,9 @@ IOS端APP下载量仅在上线之初（19年12月前后）有较大幅度的上�
 <li>听绘本：下列页面分别为绘本详情页、绘本播放页、VIP专享内容（右1+右2）</li>
 </ul>
 <blockquote>
-<p>另：绘本下方的评论区，评论内容比较粗糙，有应付打卡任务的痕迹，也没有形成良好的社区氛围。<br>
-<img src="https://sxk13.github.io/pmfun.github.io//post-images/1627457099664.jpg" alt="" loading="lazy"></p>
+<p>另：绘本下方的评论区，评论内容比较粗糙，有应付打卡任务的痕迹，也没有形成良好的社区氛围。</p>
 </blockquote>
+<figure data-type="image" tabindex="1"><img src="https://sxk13.github.io/pmfun.github.io//post-images/1627457099664.jpg" alt="" loading="lazy"></figure>
 <ul>
 <li>绘本借阅：点击绘本详情页左下角【去借书】，可查看附近的线下绘本馆和馆内图书在馆情况。<br>
 <img src="https://sxk13.github.io/pmfun.github.io//post-images/1627457106922.jpg" alt="" loading="lazy"></li>
