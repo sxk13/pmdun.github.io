@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://sxk13.github.io/pmfun.github.io/</id>
     <title>PMGO</title>
-    <updated>2021-08-05T10:39:35.793Z</updated>
+    <updated>2021-08-18T13:01:56.451Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://sxk13.github.io/pmfun.github.io/"/>
     <link rel="self" href="https://sxk13.github.io/pmfun.github.io/atom.xml"/>
@@ -10,6 +10,21 @@
     <logo>https://sxk13.github.io/pmfun.github.io/images/avatar.png</logo>
     <icon>https://sxk13.github.io/pmfun.github.io/favicon.ico</icon>
     <rights>All rights reserved 2021, PMGO</rights>
+    <entry>
+        <title type="html"><![CDATA[作品展示——儿童短视频社区]]></title>
+        <id>https://sxk13.github.io/pmfun.github.io/post/zuo-pin-zhan-shi-er-tong-duan-shi-pin-she-qu/</id>
+        <link href="https://sxk13.github.io/pmfun.github.io/post/zuo-pin-zhan-shi-er-tong-duan-shi-pin-she-qu/">
+        </link>
+        <updated>2021-08-18T12:55:12.000Z</updated>
+        <summary type="html"><![CDATA[<p>这是今年4月份设计的新产品，后来由于短视频接口（字节火山引擎）太贵的原因，没能落地实现。<br>
+现在看来，其中广场部分的设计还是显露了toC产品经验不足的问题。但后续拍摄流程展示和设计的比较完整，基本完成了设计目标。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>这是今年4月份设计的新产品，后来由于短视频接口（字节火山引擎）太贵的原因，没能落地实现。<br>
+现在看来，其中广场部分的设计还是显露了toC产品经验不足的问题。但后续拍摄流程展示和设计的比较完整，基本完成了设计目标。</p>
+<!-- more -->
+<figure data-type="image" tabindex="1"><img src="https://sxk13.github.io/pmfun.github.io//post-images/1629291655901.jpg" alt="" loading="lazy"></figure>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[【玩儿】Python爬取索尼E口和M4/3口镜头列表]]></title>
         <id>https://sxk13.github.io/pmfun.github.io/post/wan-er-python-pa-qu-suo-ni-e-kou-he-m43-kou-jing-tou-lie-biao/</id>
